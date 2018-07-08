@@ -5,34 +5,13 @@
  *  cut and paste that output into the appropriate section below.
  */
 #include <IRLibSendBase.h>    //We need the base code
-#include <IRLib_HashRaw.h>    //Only use raw sender
+#include <IRLib_HashRaw.h>    //Only use raw sender.
+#include <modbus.h>
+#include <modbusDevice.h>
+#include <modbusRegBank.h>
+#include <modbusSlave.h>
 
 IRsendRaw mySender;
-
-
-//#define MODBUS 1
-
-#ifdef MODBUS
-
-//MODBUS CODE
-
-void setup(){}
-void loop(){}
-
-#else
-
-void setup() {
-  Serial.begin(19200);
-  delay(1000); while (!Serial); //delay for Leonardo
-  Serial.println(F("Every time you press a key is a serial monitor we will send."));
-}
-/* Cut and paste the output from "rawRecv.ino" below here. It will 
- * consist of a #define RAW_DATA_LEN statement and an array definition
- * beginning with "uint16_t rawData[RAW_DATA_LEN]= {…" and concludes
- * with "…,1000};"
- */
-
-
 #define RAW_DATA_LEN 200
 
 const PROGMEM uint16_t rawData_off[RAW_DATA_LEN]={4386, 4378, 550, 1586, 550, 546, 550, 1586, 550, 1614, 550, 522, 550, 542, 550, 1590, 550, 546, 546, 522, 550, 1614, 546, 522, 550, 546, 550, 1586, 550, 1614, 550, 518, 550, 1614, 550, 522, 546, 1618, 546, 1590, 550, 1614, 550, 1614, 550, 518, 550, 1614, 550, 1590, 546, 1618, 546, 522, 546, 550, 546, 522, 550, 546, 546, 1590, 550, 546, 538, 530, 550, 1614, 550, 1586, 550, 1614, 526, 546, 546, 550, 546, 522, 546, 546, 550, 522, 522, 570, 526, 546, 546, 522, 550, 1614, 522, 1642, 522, 1614, 526, 1638, 522, 1618, 522, 5210, 4382, 4382, 522, 1614, 522, 574, 522, 1614, 522, 1642, 522, 546, 526, 570, 522, 1618, 522, 570, 526, 546, 522, 1642, 522, 546, 522, 574, 522, 1614, 522, 1642, 522, 546, 522, 1642, 522, 550, 546, 1614, 526, 1638, 526, 1614, 522, 1642, 522, 546, 522, 1642, 522, 1614, 526, 1642, 522, 570, 522, 550, 522, 546, 522, 574, 522, 1614, 522, 574, 522, 546, 522, 1642, 522, 1642, 522, 1614, 522, 574, 522, 550, 518, 550, 522, 570, 522, 550, 522, 570, 522, 550, 522, 570, 522, 1618, 522, 1642, 522, 1614, 522, 1642, 522, 1642, 522, 1000};
@@ -71,6 +50,106 @@ uint16_t RAW[RAW_DATA_LEN];
 /*
  * Cut-and-paste into the area above.
  */
+
+void buffcopy(uint16_t * src, uint16_t * dst, int len) {
+    for (byte i=0;i<len;i++) 
+    {
+      dst[i]=pgm_read_word_near(src + i);
+      //Serial.println(dst[i]);
+    }
+}
+#define MODBUS 1
+
+#ifdef MODBUS
+//MODBUS CODE
+modbusDevice regBank;
+modbusSlave slave;
+void setup()
+{   
+
+//Assign the modbus device ID.  
+  regBank.setId(4);
+  regBank.add(40001); //Recives command here
+  regBank.add(40002); //Saves result here
+  
+
+/*
+Assign the modbus device object to the protocol handler
+This is where the protocol handler will look to read and write
+register data.  Currently, a modbus slave protocol handler may
+only have one device assigned to it.
+*/
+  slave._device = &regBank;  
+
+// Initialize the serial port for coms at 9600 baud  
+  slave.setBaud(19200);    
+  regBank.set(40001,0);
+  pinMode(LED_BUILTIN, OUTPUT);
+}
+
+void loop()
+{ int cmd;
+  uint16_t *src;
+  while(1)
+  {
+     if (slave.run())
+     {
+          cmd=regBank.get(40001);
+          
+          byte cmd_valid=1;
+          if(cmd==1) src=rawData_off;       //1 for off and 
+          else if (cmd==2) src=rawData_on;  //2 for on
+          else if(cmd==17) src=rawData_17;
+          else if(cmd==18) src=rawData_18;
+          else if(cmd==19) src=rawData_19;
+          else if(cmd==20) src=rawData_20;
+          else if(cmd==21) src=rawData_21;
+          else if(cmd==22) src=rawData_22;
+          else if(cmd==23) src=rawData_23;
+          else if(cmd==24) src=rawData_24;
+          else if(cmd==25) src=rawData_25;
+          else if(cmd==26) src=rawData_26;
+          else if(cmd==27) src=rawData_27;
+          else if(cmd==28) src=rawData_28;
+          else if(cmd==29) src=rawData_29;
+          else if(cmd==30) src=rawData_30;
+          else cmd_valid=0;
+          if(cmd_valid)
+            {
+              
+              buffcopy(src,RAW,RAW_DATA_LEN);
+              mySender.send(RAW,RAW_DATA_LEN,38);//Pass the buffer,length, optionally frequency
+
+              for(int i=0; i<cmd; i++)
+                { digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
+                delay(250);                       // wait for a second
+                digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
+                delay(250);
+                //Just an indicator. Comment to eliminate delay.
+                }
+            }
+                    
+     }
+     
+   
+  }
+
+}
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#else
+
+void setup() {
+  Serial.begin(19200);
+  delay(1000); while (!Serial); //delay for Leonardo
+  Serial.println(F("Every time you press a key is a serial monitor we will send."));
+}
+
+
 
 
 String readline()
@@ -132,12 +211,6 @@ void loop() {
   
 }
 
-void buffcopy(uint16_t * src, uint16_t * dst, int len) {
-    for (byte i=0;i<len;i++) 
-    {
-      dst[i]=pgm_read_word_near(src + i);
-      //Serial.println(dst[i]);
-    }
-}
-
 #endif
+
+

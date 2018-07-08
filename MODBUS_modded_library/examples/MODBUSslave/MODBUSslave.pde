@@ -19,7 +19,7 @@ void setup()
 {   
 
 //Assign the modbus device ID.  
-  regBank.setId(4);
+  regBank.setId(1);
 
 /*
 modbus registers follow the following format
@@ -107,7 +107,7 @@ only have one device assigned to it.
   slave._device = &regBank;  
 
 // Initialize the serial port for coms at 9600 baud  
-  slave.setBaud(19200);   
+  slave.setBaud(9600);   
 }
 
 void loop()
@@ -156,11 +156,11 @@ void loop()
   
  while(1)
   {
-//put a random number into registers 1, 10001, 30001 and 40001
-//    regBank.set(1, (byte) random(0, 2));
-//    regBank.set(10001, (byte) random(0, 2));
-//    regBank.set(30001, (word) random(0, 32767));
-//    regBank.set(40001, (word) random(0, 32767));
+    //put a random number into registers 1, 10001, 30001 and 40001
+    regBank.set(1, (byte) random(0, 2));
+    regBank.set(10001, (byte) random(0, 2));
+    regBank.set(30001, (word) random(0, 32767));
+    regBank.set(40001, (word) random(0, 32767));
     
      slave.run();  
   }

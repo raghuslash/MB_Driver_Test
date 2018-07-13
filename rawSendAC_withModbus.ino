@@ -59,7 +59,6 @@ void buffcopy(uint16_t * src, uint16_t * dst, int len) {
     }
 }
 #define MODBUS 1
-
 #ifdef MODBUS
 //MODBUS CODE
 modbusDevice regBank;
@@ -122,22 +121,16 @@ void loop()
 
               for(int i=0; i<cmd; i++)
                 { digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
-                delay(250);                       // wait for a second
+                delay(150);                       // wait for a second
                 digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
-                delay(250);
+                delay(150);
                 //Just an indicator. Comment to eliminate delay.
                 }
             }
                     
      }
-     
-   
-  }
-
+   }
 }
-
-
-
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

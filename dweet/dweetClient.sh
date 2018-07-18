@@ -1,6 +1,5 @@
 last="0"
 found="1"
-
 while true
 do
 	x=$(curl https://dweet.io/get/latest/dweet/for/RBC-meeting-ac)

@@ -91,8 +91,8 @@ void loop()
   uint16_t *src;
   while(1)
   {
-     if (slave.run())
-     {
+     if (Serial.available())
+     {	  slave.run();
           cmd=regBank.get(40001);
           
           byte cmd_valid=1;
